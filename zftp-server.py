@@ -7,29 +7,25 @@ localIP = "127.0.0.1"
 localPort = int(sys.argv[1])
 bufferSize = 1024
 
-msgFromServer = "Hello UDP Client"
+msgFromServer = "ack"
 bytesToSend = str.encode(msgFromServer)
+
 # Create a datagram socket
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 # Bind to address and ip
 UDPServerSocket.bind((localIP, localPort))
 
-print("Server up and listening")
+print("ZFTP-Server up and listening")
 
 while True:
-    bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+    messageReceived = UDPServerSocket.recvfrom(bufferSize)
 
-    message = bytesAddressPair[0]
+    clientMsg = messageReceived[0]
+    address = messageReceived[1]
 
-    address = bytesAddressPair[1]
+    TCPport = clientMsg.decode()
 
-    clientMsg = "Message from Client:{}".format(message)
-    clientIP = "Client IP Address:{}".format(address)
-
-    print(clientMsg)
-    print(clientIP)
-
-    # Sending a reply to client
+    # Sending open reply to client
 
     UDPServerSocket.sendto(bytesToSend, address)
