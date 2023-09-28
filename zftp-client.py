@@ -1,4 +1,5 @@
 # python zftp-client.py server_name 20001
+# import os para ver se o file existe
 
 import socket
 import sys
@@ -22,23 +23,37 @@ def openCon(args):
     elif port > 65535:
         print("Invalid port number")
     else:
-        port = str.encode(args[1])
-        UDPClientSocket.sendto(port, serverAddressPort)
+        string = " ".join(args)
+        input = str.encode(string)
+        UDPClientSocket.sendto(input, serverAddressPort)
         msgFromServer = UDPClientSocket.recvfrom(bufferSize)
         msg = msgFromServer[0].decode()
         print(msg)
 
 
-def closeCon():
+def closeCon(args):
     # Fechar
+    string = " ".join(args)
+    input = str.encode(string)
+    UDPClientSocket.sendto(input, serverAddressPort)
+    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    msg = msgFromServer[0].decode()
+    print(msg)
     UDPClientSocket.close()
+    
     global openTCP
     openTCP = False
 
 
 def getFile(args):
-    # criar socket TCP
-    print
+    string = " ".join(args)
+    input = str.encode(string)
+    UDPClientSocket.sendto(input, serverAddressPort)
+    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    msg = msgFromServer[0].decode()
+    print(msg)
+    TCPserverSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # create TCP welcoming socket
+    TCPserverSocket.connect((server_name, int(port)))  # open TCP connection
 
 
 def putFile(args):
@@ -49,7 +64,7 @@ def switch_case(args):
     if args[0] == "open":
         openCon(args)
     elif args[0] == "close":
-        closeCon()
+        closeCon(args)
     elif args[0] == "get":
         getFile(args)
     elif args[0] == "put":
