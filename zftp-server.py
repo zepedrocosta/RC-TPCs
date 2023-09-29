@@ -28,8 +28,10 @@ def openCon(args):
         global port
         port = args[1]
         UDPServerSocket.sendto(ackBytes, address)
+        print("Port received")
     else:
         UDPServerSocket.sendto(nackBytes, address)
+        print("Server already has a port")
 
 
 def closeCon():
@@ -38,19 +40,33 @@ def closeCon():
         openPort = False
         UDPServerSocket.sendto(ackBytes, address)
         UDPServerSocket.close
+        print("Interaction closed")
     else:
         UDPServerSocket.sendto(nackBytes, address)
+        print("No interaction")
 
 
 def getFile(args):
+    # SERVER -> CLIENT
     if os.path.isfile(args[1]):
         UDPServerSocket.sendto(ackBytes, address)
+        TCPserverSocket = socket.socket(
+            family=socket.AF_INET, type=socket.SOCK_STREAM
+        )  # create TCP welcoming socket
+        TCPserverSocket.bind(("", int(port)))
+        TCPserverSocket.listen(1)
+        TCPclientSocket, addr = TCPserverSocket.accept()
+        with open(args[1], "rb") as file:
+            while True:
+                data = file.read(bufferSize)
+                if not data:
+                    break
+                TCPclientSocket.send(data)
+        TCPclientSocket.close()
+        TCPserverSocket.close()
+        print("Ficheiro enviado")
     else:
         UDPServerSocket.sendto(nackBytes, address)
-    
-    TCPserverSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # create TCP welcoming socket
-    TCPserverSocket.bind(("", int(port)))
-    TCPserverSocket.listen(1)
 
 
 def putFile(args):

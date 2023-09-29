@@ -1,4 +1,4 @@
-# python zftp-client.py server_name 20001
+# python zftp-client.py localhost 20001
 # import os para ver se o file existe
 
 import socket
@@ -40,20 +40,34 @@ def closeCon(args):
     msg = msgFromServer[0].decode()
     print(msg)
     UDPClientSocket.close()
-    
+
     global openTCP
     openTCP = False
 
 
 def getFile(args):
+    # SERVER -> CLIENT
+    fileName = args[1]
     string = " ".join(args)
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
     msg = msgFromServer[0].decode()
     print(msg)
-    TCPserverSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)  # create TCP welcoming socket
-    TCPserverSocket.connect((server_name, int(port)))  # open TCP connection
+    if msg == "ack":
+        TCPclientSocket = socket.socket(
+            family=socket.AF_INET, type=socket.SOCK_STREAM
+        )  # create TCP welcoming socket
+        TCPclientSocket.connect(
+            (str(server_name), int(port))
+        )  # open TCP connection ERRORRRR
+        with open(fileName, "wb") as file:
+            while True:
+                data = TCPclientSocket.recv(bufferSize)
+                if not data:
+                    break
+                file.write(data)
+        TCPclientSocket.close()
 
 
 def putFile(args):
