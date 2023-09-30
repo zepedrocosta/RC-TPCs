@@ -32,7 +32,6 @@ def openCon(args):
 
 
 def closeCon(args):
-    # Fechar
     string = " ".join(args)
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
@@ -47,7 +46,10 @@ def closeCon(args):
 
 def getFile(args):
     # SERVER -> CLIENT
-    fileName = args[1]
+    if(len(args) == 2):
+        fileName = args[1]
+    else:
+        fileName = args[2]
     string = " ".join(args)
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
@@ -58,9 +60,7 @@ def getFile(args):
         TCPclientSocket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM
         )  # create TCP welcoming socket
-        TCPclientSocket.connect(
-            (str(server_name), int(port))
-        )  # open TCP connection ERRORRRR
+        TCPclientSocket.connect((str(server_name), int(port)))  # open TCP connection
         with open(fileName, "wb") as file:
             while True:
                 data = TCPclientSocket.recv(bufferSize)
@@ -71,7 +71,23 @@ def getFile(args):
 
 
 def putFile(args):
-    print
+    # CLIENT -> SERVER
+    fileName = args[1]
+    string = " ".join(args)
+    input = str.encode(string)
+    UDPClientSocket.sendto(input, serverAddressPort)
+    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    msg = msgFromServer[0].decode()
+    print(msg)
+    if msg == "ack":
+        TCPClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        TCPClientSocket.connect((str(server_name), int(port)))
+        #TCPClientSocket.send(fileName.encode())
+        with open(fileName, "rb") as file:
+            data = file.read(bufferSize)
+            while data:
+                TCPClientSocket.send(data)
+                data = file.read(bufferSize)
 
 
 def switch_case(args):
@@ -88,8 +104,6 @@ def switch_case(args):
 
 
 def main():
-    # Create a UDP socket at client side
-
     global UDPClientSocket
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     while openTCP:

@@ -47,7 +47,6 @@ def closeCon():
 
 
 def getFile(args):
-    # SERVER -> CLIENT
     if os.path.isfile(args[1]):
         UDPServerSocket.sendto(ackBytes, address)
         TCPserverSocket = socket.socket(
@@ -64,13 +63,35 @@ def getFile(args):
                 TCPclientSocket.send(data)
         TCPclientSocket.close()
         TCPserverSocket.close()
-        print("Ficheiro enviado")
+        print("File sent")
     else:
         UDPServerSocket.sendto(nackBytes, address)
+        print("File does not exist")
 
 
 def putFile(args):
-    print
+    if os.path.isfile(args[1]):
+        UDPServerSocket.sendto(nackBytes, address)
+        print("File already exists")
+    else:
+        UDPServerSocket.sendto(ackBytes, address)
+        TCPserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        TCPserverSocket.bind(("", int(port)))
+        TCPserverSocket.listen(1)
+        TCPclientSocket, addr = TCPserverSocket.accept()
+        if(len(args) == 2):
+            fileName = args[1]
+        else:
+            fileName = args[2]
+        with open(fileName, "wb") as file:
+            while True:
+                data = TCPclientSocket.recv(bufferSize)
+                if not data:
+                    break
+                file.write(data)
+        TCPclientSocket.close()
+        TCPserverSocket.close()
+        print("File sent")
 
 
 def main():
@@ -78,8 +99,6 @@ def main():
 
     while True:
         messageReceived = UDPServerSocket.recvfrom(bufferSize)
-
-        # Sending open reply to client
 
         clientMsg = messageReceived[0]
         global address
