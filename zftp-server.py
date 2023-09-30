@@ -1,6 +1,6 @@
 # python zftp-server.py 20001
 
-import os.path
+import os
 import socket
 
 import sys
@@ -10,7 +10,9 @@ localPort = int(sys.argv[1])
 bufferSize = 1024
 
 ackBytes = str.encode("ack")
-nackBytes = str.encode("nack")
+nack1Bytes = str.encode("nack 1")
+nack2Bytes = str.encode("nack 2")
+nack3Bytes = str.encode("nack 3")
 openPort = False
 
 
@@ -22,15 +24,19 @@ UDPServerSocket.bind((localIP, localPort))
 
 
 def openCon(args):
+    x = len(args)
+    global port
     global openPort
-    if openPort == False:
+    port = int(args[1])
+    if x != 2:
+        UDPServerSocket.sendto(nack1Bytes, address)
+    elif port > 65535:
+        UDPServerSocket.sendto(nack2Bytes, address)
+    elif openPort == False:
         openPort = True
-        global port
-        port = args[1]
         UDPServerSocket.sendto(ackBytes, address)
         print("Port received")
     else:
-        UDPServerSocket.sendto(nackBytes, address)
         print("Server already has a port")
 
 
@@ -42,12 +48,21 @@ def closeCon():
         UDPServerSocket.close
         print("Interaction closed")
     else:
-        UDPServerSocket.sendto(nackBytes, address)
+        UDPServerSocket.sendto(nack1Bytes, address)
         print("No interaction")
 
 
 def getFile(args):
-    if os.path.isfile(args[1]):
+    if len(args) > 4 or len(args) == 1:
+        UDPServerSocket.sendto(nack1Bytes, address)
+        print("Invalid number of arguments")
+    elif args[3] == "True":
+        UDPServerSocket.sendto(nack2Bytes, address)
+        print("File already exists on client")
+    elif not os.path.isfile(args[1]):
+        UDPServerSocket.sendto(nack3Bytes, address)
+        print("File does not exist")
+    else:
         UDPServerSocket.sendto(ackBytes, address)
         TCPserverSocket = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM
@@ -64,22 +79,25 @@ def getFile(args):
         TCPclientSocket.close()
         TCPserverSocket.close()
         print("File sent")
-    else:
-        UDPServerSocket.sendto(nackBytes, address)
-        print("File does not exist")
 
 
 def putFile(args):
-    if os.path.isfile(args[1]):
-        UDPServerSocket.sendto(nackBytes, address)
-        print("File already exists")
+    if len(args) > 4 or len(args) == 1:
+        UDPServerSocket.sendto(nack1Bytes, address)
+        print("Invalid number of arguments")
+    elif args[3] == "False":
+        UDPServerSocket.sendto(nack2Bytes, address)
+        print("File does not exist on client")
+    elif os.path.isfile(args[2]):
+        UDPServerSocket.sendto(nack3Bytes, address)
+        print("File already exists on server")
     else:
         UDPServerSocket.sendto(ackBytes, address)
         TCPserverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         TCPserverSocket.bind(("", int(port)))
         TCPserverSocket.listen(1)
         TCPclientSocket, addr = TCPserverSocket.accept()
-        if(len(args) == 2):
+        if len(args) == 2:
             fileName = args[1]
         else:
             fileName = args[2]

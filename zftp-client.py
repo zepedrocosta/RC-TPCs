@@ -3,6 +3,7 @@
 
 import socket
 import sys
+import os
 
 openTCP = True
 
@@ -15,20 +16,14 @@ bufferSize = 1024
 
 # Open command
 def openCon(args):
-    x = len(args)
     global port
     port = int(args[1])
-    if x != 2:
-        print("Invalid number of arguments")
-    elif port > 65535:
-        print("Invalid port number")
-    else:
-        string = " ".join(args)
-        input = str.encode(string)
-        UDPClientSocket.sendto(input, serverAddressPort)
-        msgFromServer = UDPClientSocket.recvfrom(bufferSize)
-        msg = msgFromServer[0].decode()
-        print(msg)
+    string = " ".join(args)
+    input = str.encode(string)
+    UDPClientSocket.sendto(input, serverAddressPort)
+    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+    msg = msgFromServer[0].decode()
+    print(msg)
 
 
 def closeCon(args):
@@ -39,18 +34,18 @@ def closeCon(args):
     msg = msgFromServer[0].decode()
     print(msg)
     UDPClientSocket.close()
-
     global openTCP
     openTCP = False
 
 
 def getFile(args):
     # SERVER -> CLIENT
-    if(len(args) == 2):
-        fileName = args[1]
-    else:
-        fileName = args[2]
+    fileName = args[2]
     string = " ".join(args)
+    if os.path.isfile(fileName):
+        string += " True"
+    else:
+        string += " False"
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
@@ -74,6 +69,10 @@ def putFile(args):
     # CLIENT -> SERVER
     fileName = args[1]
     string = " ".join(args)
+    if os.path.isfile(fileName):
+        string += " True"
+    else:
+        string += " False"
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
@@ -82,7 +81,6 @@ def putFile(args):
     if msg == "ack":
         TCPClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         TCPClientSocket.connect((str(server_name), int(port)))
-        #TCPClientSocket.send(fileName.encode())
         with open(fileName, "rb") as file:
             data = file.read(bufferSize)
             while data:
