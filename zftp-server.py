@@ -2,8 +2,12 @@
 
 import os
 import socket
-
 import sys
+
+"""
+@author: Catarina Gonçalves Costa | 62497
+@author: José Pedro Pires Costa | 62637
+"""
 
 localIP = "127.0.0.1"
 localPort = int(sys.argv[1])
@@ -27,13 +31,13 @@ def openCon(args):
     x = len(args)
     global port
     global openPort
-    port = int(args[1])
     if x != 2:
         UDPServerSocket.sendto(nack1Bytes, address)
-    elif port > 65535:
+    elif int(args[1]) > 65535:
         UDPServerSocket.sendto(nack2Bytes, address)
     elif openPort == False:
         openPort = True
+        port = int(args[1])
         UDPServerSocket.sendto(ackBytes, address)
         print("Port received")
     else:
@@ -53,7 +57,7 @@ def closeCon():
 
 
 def getFile(args):
-    if len(args) > 4 or len(args) == 1:
+    if len(args) != 4:
         UDPServerSocket.sendto(nack1Bytes, address)
         print("Invalid number of arguments")
     elif args[3] == "True":
@@ -82,7 +86,7 @@ def getFile(args):
 
 
 def putFile(args):
-    if len(args) > 4 or len(args) == 1:
+    if len(args) != 4:
         UDPServerSocket.sendto(nack1Bytes, address)
         print("Invalid number of arguments")
     elif args[3] == "False":

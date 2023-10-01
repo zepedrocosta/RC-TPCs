@@ -1,9 +1,13 @@
 # python zftp-client.py localhost 20001
-# import os para ver se o file existe
 
 import socket
 import sys
 import os
+
+"""
+@author: Catarina Gonçalves Costa | 62497
+@author: José Pedro Pires Costa | 62637
+"""
 
 openTCP = True
 
@@ -13,19 +17,24 @@ localPort = int(sys.argv[2])
 serverAddressPort = ("127.0.0.1", localPort)
 bufferSize = 1024
 
+# Create a datagram socket
+UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+
 
 # Open command
 def openCon(args):
     global port
-    port = int(args[1])
     string = " ".join(args)
     input = str.encode(string)
     UDPClientSocket.sendto(input, serverAddressPort)
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
     msg = msgFromServer[0].decode()
     print(msg)
+    if msg == "ack":
+        port = int(args[1])
 
 
+# Close command
 def closeCon(args):
     string = " ".join(args)
     input = str.encode(string)
@@ -38,10 +47,15 @@ def closeCon(args):
     openTCP = False
 
 
+# get <File in server> <New file in client>
 def getFile(args):
     # SERVER -> CLIENT
-    fileName = args[2]
+    if len(args) == 3:
+        fileName = args[2]
+    else:
+        fileName = ""
     string = " ".join(args)
+    # checks if the client already has a file with that name
     if os.path.isfile(fileName):
         string += " True"
     else:
@@ -65,10 +79,15 @@ def getFile(args):
         TCPclientSocket.close()
 
 
+# put <File in client> <New file in server>
 def putFile(args):
     # CLIENT -> SERVER
-    fileName = args[1]
+    if len(args) == 3:
+        fileName = args[2]
+    else:
+        fileName = ""
     string = " ".join(args)
+    # checks if the client already has a file with that name
     if os.path.isfile(fileName):
         string += " True"
     else:
@@ -102,8 +121,6 @@ def switch_case(args):
 
 
 def main():
-    global UDPClientSocket
-    UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     while openTCP:
         cmd = input()
         args = cmd.split(" ")
