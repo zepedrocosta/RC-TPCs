@@ -83,7 +83,7 @@ def getFile(args):
 def putFile(args):
     # CLIENT -> SERVER
     if len(args) == 3:
-        fileName = args[2]
+        fileName = args[1]
     else:
         fileName = ""
     string = " ".join(args)
