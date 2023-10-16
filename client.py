@@ -2,6 +2,7 @@ import sys
 import socket
 import pickle
 import select
+import time
 
 """
 @author: Catarina Gonçalves Costa | 62497
@@ -12,6 +13,8 @@ host_of_server = sys.argv[1]
 portSP = int(sys.argv[2])
 fileName = sys.argv[3]
 chunkSize = int(sys.argv[4])
+
+buffer = chunkSize + 4096
 
 serverAddressPort = ("127.0.0.1", portSP)
 
@@ -27,6 +30,7 @@ def waitForReply(UDPClientSocket):
 
 
 def main():
+    start = time.time()
     file = open(
         fileName, "wb"
     )  # Cria um ficheiro com o mesmo nome do ficheiro do server
@@ -36,13 +40,23 @@ def main():
         req = pickle.dumps(request)
         UDPClientSocket.sendto(req, serverAddressPort)
         if waitForReply(UDPClientSocket):
-            datagram = UDPClientSocket.recvfrom()  # meter tamanho do datagram
-
-            # file.write(fileChunk)
-            if offset:
-                break
-            else:
+            datagram, address = UDPClientSocket.recvfrom(buffer)
+            message = pickle.loads(datagram)
+            status = message[0]
+            if status == 0:
+                len_data = message[1]
+                data = message[2]
+                file.write(data)
+                if len_data < chunkSize:
+                    break
                 offset += chunkSize
+            else:
+                break
+    print(f"status = {status}")
+    UDPClientSocket.close()
+    file.close()
+    end = time.time()
+    print(end - start)
 
 
 main()
