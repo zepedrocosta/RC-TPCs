@@ -1,0 +1,16 @@
+10 MBytes file
+
+A
+chunck size = 1024
+packet loss = 10%
+RESULT = 10240Kb / 1147 = 8.928 Kb/s
+
+B
+chunck size = 2048
+packet loss = 25%
+RESULT = 10240Kb / 1750 = 5.85 Kb/s
+
+C
+chunck size = 4096
+packet loss = 40%
+RESULT = 10240Kb / 1640 = 6.24 Kb/s
