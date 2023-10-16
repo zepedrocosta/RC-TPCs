@@ -24,7 +24,7 @@ UDPServerSocket.bind((localIP, portSP))
 
 def serverReply(msgP, UDPServerSocket, address):
     randomNumber = random.randint(1, 10)
-    if randomNumber >= 2:
+    if randomNumber >= 3:
         UDPServerSocket.sendto(msgP, address)
     return
 

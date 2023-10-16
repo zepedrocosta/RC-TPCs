@@ -42,21 +42,23 @@ def main():
         if waitForReply(UDPClientSocket):
             datagram, address = UDPClientSocket.recvfrom(buffer)
             message = pickle.loads(datagram)
-            status = message[0]
+            status = message[0] 
             if status == 0:
                 len_data = message[1]
                 data = message[2]
                 file.write(data)
+                offset += chunkSize
                 if len_data < chunkSize:
                     break
-                offset += chunkSize
             else:
                 break
     print(f"status = {status}")
     UDPClientSocket.close()
     file.close()
     end = time.time()
-    print(end - start)
+    elapsedTime = end - start
+    transferSpeed = (offset / elapsedTime) /1024
+    print(f"Transfer speed = {transferSpeed} Kb/s")
 
 
 main()
