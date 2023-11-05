@@ -52,7 +52,7 @@ def main():
                 reply = (expectedSeqNum, "ACK")
                 replyP = pickle.dumps(reply)
                 sendDatagram(replyP, UDPReceiverSocket, address)
-                print("Sending ACK", expectedSeqNum)
+                print("Sending ACK: ", expectedSeqNum)
                 expectedSeqNum += 1
             else:
                 reply = (
@@ -62,8 +62,11 @@ def main():
                 replyP = pickle.dumps(reply)
                 sendDatagram(replyP, UDPReceiverSocket, address)
                 print("Sending ACK", expectedSeqNum - 1)
-        else:
-            break
+            if (
+                len(data) < 1024
+            ):  # Quando a len da data é menor que 1024 significa que já não tem mais nada para mandar
+                break
+    file.close()
 
 
 main()
