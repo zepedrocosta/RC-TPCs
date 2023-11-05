@@ -65,7 +65,7 @@ def main():
     global base
     global nextSeqNum
     file = open(filename, "rb")
-    seqN = 0
+    seqN = 0 # Tamanho em 'packets'
     while True:
         data = file.read(chunkSize)
         if not data:
@@ -82,11 +82,6 @@ def main():
                 nextSeqNum = 1
                 break
             case cStates.STATE_1: # enviar packets
-                offset = chunkSize * base # VERFICAR SE É A MULTIPLIA PELA base OU nextSeqNum
-                file.seek(offset)
-                data = file.read(chunkSize)  # Informação lida
-                if not data:
-                    break
                 rdt_sent(data)
                 state = STATE_2
                 break
