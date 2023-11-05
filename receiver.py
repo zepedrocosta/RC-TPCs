@@ -49,11 +49,11 @@ def main():
             print("Received packet: ", seqN)
             if seqN == expectedSeqNum:
                 file.write(data)
-                expectedSeqNum += 1
                 reply = (expectedSeqNum, "ACK")
                 replyP = pickle.dumps(reply)
                 sendDatagram(replyP, UDPReceiverSocket, address)
                 print("Sending ACK", expectedSeqNum)
+                expectedSeqNum += 1
             else:
                 reply = (
                     expectedSeqNum - 1,
