@@ -4,9 +4,9 @@ import pickle
 import select
 import random
 
-senderIP = int(sys.argv[1])
+senderIP = sys.argv[1]
 senderPort = int(sys.argv[2])
-receiverIP = int(sys.argv[3])
+receiverIP = sys.argv[3]
 receiverPort = int(sys.argv[4])
 filename = sys.argv[5]
 windowSizeInBlocks = int(sys.argv[6])
@@ -19,11 +19,11 @@ window = {}
 currWindow = 0
 
 class cStates:
-    INITIAL_STATE
-    FINAL_STATE
-    STATE_1
-    STATE_2
-    STATE_3
+    INITIAL_STATE = "inicio"
+    FINAL_STATE = "final"
+    STATE_1 = "state_1"
+    STATE_2 = "state_2"
+    STATE_3 = "state_3"
     
 recieverAddressPort = (receiverIP, receiverPort)
 
@@ -95,13 +95,14 @@ def rdt_sent():
             
 
 def prepareWindow():
+    global packets
     file = open(filename, "rb")
     seqN = 0 # Tamanho em 'packets'
     i = 0
     while True:
         data = file.read(chunkSize)
-        packets.append(packet)
         packet = pickle.dumps((seqN, data))
+        packets.append(packet)
         seqN += 1
         if not data:
             i = windowSizeInBlocks
@@ -137,7 +138,7 @@ def main():
                 break
             case cStates.STATE_3: #timeout
                 break
-    socket.close()
+    UDPSenderSocket.close()
 
 
 main()
