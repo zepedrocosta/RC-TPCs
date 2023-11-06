@@ -65,9 +65,9 @@ def rdt_sent():
     #enviar window nextSeqNum ate windowSizeInBlocks 1 a 1
     #esperar timeout
     if(currWindow < len(window)):
+        tmp = window[chr(currWindow)]
         i = 0
-        while(i<windowSizeInBlocks):
-            tmp = window[chr(currWindow)]
+        while(i<len(tmp)):
             msgSendP = pickle.dumps((nextSeqNum, tmp[i]))
             i+= 1
             sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
