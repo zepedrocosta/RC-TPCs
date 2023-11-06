@@ -15,6 +15,8 @@ base = 1
 nextSeqNum = 1
 chunkSize = 1024
 packets = []
+window = {}
+currWindow = 0
 
 class cStates:
     INITIAL_STATE
@@ -46,33 +48,68 @@ def recv_ack(data):
        msgRecv = pickle.loads(data)
        base = msgRecv[1]
        if(base >= nextSeqNum): # o package foi recebido
-           stop_timer
-        else: # o package foi perdido a enviar/ voltar a enviar
-            start_timer
+           return True
+       else: # o package foi perdido a enviar/ voltar a enviar
+           return False
 
 
-def rdt_sent(data):
-    if(nextSeqNum < base + windowSizeInBlocks):
-        msgSendP = pickle.dumps((nextSeqNum,data))
-        sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
-        if(base==nextSeqNum):
-            start_timer
-        nextSeqNum+=1
+def rdt_sent():
+#    if(nextSeqNum < base + windowSizeInBlocks):
+#        msgSendP = pickle.dumps((nextSeqNum,data))
+#        sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
+#        if(base==nextSeqNum):
+#            start_timer
+#        nextSeqNum+=1 
        # recv_ack()
+    
+    #enviar window nextSeqNum ate windowSizeInBlocks 1 a 1
+    #esperar timeout
+    if(currWindow < len(window)):
+        i = 0
+        while(i<windowSizeInBlocks):
+            tmp = window[chr(currWindow)]
+            msgSendP = pickle.dumps((nextSeqNum, tmp[i]))
+            i+= 1
+            sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
+            nextSeqNum += 1
+
+        recieved = False
+        while not waitForReply(UDPSenderSocket, 1):
+            if recv_ack():
+                recieved = True
+        
+        if recieved:
+            currWindow += 1
+        rdt_sent()
+
+        
+            
+
+def prepareWindow():
+    file = open(filename, "rb")
+    seqN = 0 # Tamanho em 'packets'
+    i = 0
+    while True:
+        data = file.read(chunkSize)
+        packets.append(packet)
+        packet = pickle.dumps((seqN, data))
+        seqN += 1
+        if not data:
+            i = windowSizeInBlocks
+            break  # End of file
+        if( i == windowSizeInBlocks):
+            index = len(window)+1
+            window[chr(index)] = packets
+            packets = []
+            i = 0
+        else:
+            i += 1
 
 
 def main():
     global base
     global nextSeqNum
-    file = open(filename, "rb")
-    seqN = 0 # Tamanho em 'packets'
-    while True:
-        data = file.read(chunkSize)
-        if not data:
-            break  # End of file
-        packet = pickle.dumps((seqN, data))
-        packets.append(packet)
-        seqN += 1
+    prepareWindow()
 
     state = cStates.INITIAL_STATE 
     while state != FINAL_STATE: 
@@ -83,7 +120,7 @@ def main():
                 break
             case cStates.STATE_1: # enviar packets
                 rdt_sent(data)
-                state = STATE_2
+                state = cStates.STATE_2
                 break
             case cStates.STATE_2: #receber ack
                 recv_ack()
