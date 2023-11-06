@@ -49,11 +49,6 @@ def recv_ack(data):
        base = msgRecv[1]
        if(base >= nextSeqNum): # o package foi recebido
            return True
-       #confirmar e melhorar se der
-       else if(base == len(window[chr(len(window)-1)])):
-            global status
-            status = cStates.FINAL_STATE
-            return
        else: # o package foi perdido a enviar/ voltar a enviar
            return False
 
