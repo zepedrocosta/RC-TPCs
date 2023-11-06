@@ -49,6 +49,11 @@ def recv_ack(data):
        base = msgRecv[1]
        if(base >= nextSeqNum): # o package foi recebido
            return True
+       #confirmar e melhorar se der
+       else if(base == len(window[chr(len(window)-1)])):
+            global status
+            status = cStates.FINAL_STATE
+            return
        else: # o package foi perdido a enviar/ voltar a enviar
            return False
 
@@ -80,6 +85,10 @@ def rdt_sent():
         
         if recieved:
             currWindow += 1
+        elif(base == len(window[chr(len(window)-1)])):
+            global status
+            status = cStates.FINAL_STATE
+            return
         rdt_sent()
 
         
@@ -104,6 +113,7 @@ def prepareWindow():
             i = 0
         else:
             i += 1
+    file.close()
 
 
 def main():
@@ -112,7 +122,7 @@ def main():
     prepareWindow()
 
     state = cStates.INITIAL_STATE 
-    while state != FINAL_STATE: 
+    while state != cStates.FINAL_STATE: 
         match state:
             case cStates.INITIAL_STATE:
                 base = 1
@@ -127,10 +137,7 @@ def main():
                 break
             case cStates.STATE_3: #timeout
                 break
-
-
-
-
+    socket.close()
 
 
 main()
