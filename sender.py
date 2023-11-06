@@ -20,6 +20,10 @@ currWindow = 0
 
 class cStates:
     INITIAL_STATE
+    FINAL_STATE
+    STATE_1
+    STATE_2
+    STATE_3
     
 recieverAddressPort = (receiverIP, receiverPort)
 
@@ -74,10 +78,11 @@ def rdt_sent():
             nextSeqNum += 1
 
         recieved = False
-        while not waitForReply(UDPSenderSocket, 1):
+
+        while waitForReply(UDPSenderSocket, 1) is None:
             if recv_ack():
                 recieved = True
-        
+
         if recieved:
             currWindow += 1
         elif(base == len(window[chr(len(window)-1)])):
@@ -124,7 +129,7 @@ def main():
                 nextSeqNum = 1
                 break
             case cStates.STATE_1: # enviar packets
-                rdt_sent(data)
+                rdt_sent()
                 state = cStates.STATE_2
                 break
             case cStates.STATE_2: #receber ack
