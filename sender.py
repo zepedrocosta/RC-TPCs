@@ -45,7 +45,7 @@ def sendDatagram (msg, sock, address):
     # Generate random number in the range of 1 to 10 
     rand = random.randint(1, 10) 
     # If rand is less is than 3, do not respond (20% of loss probability) 
-    if rand >= 3: 
+    if rand >= 1: 
         sock.sendto(msg, address) 
 
 def recv_ack(data):        
@@ -68,24 +68,25 @@ def rdt_sent():
     
     #enviar window nextSeqNum ate windowSizeInBlocks 1 a 1
     #esperar timeout
+    global currWindow
+    global nextSeqNum
     if(currWindow < len(window)):
-        tmp = window[chr(currWindow)]
+        print(str(currWindow))
+        tmp = window[str(currWindow)]
         i = 0
         while(i<len(tmp)):
             msgSendP = pickle.dumps((nextSeqNum, tmp[i]))
+            print(nextSeqNum)
             i+= 1
             sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
             nextSeqNum += 1
-
-        recieved = False
-
-        while waitForReply(UDPSenderSocket, 1) is None:
-            if recv_ack():
-                recieved = True
+        recieved=False
+        while waitForReply(UDPSenderSocket, 5) is None:
+            recieved =  recv_ack()
 
         if recieved:
             currWindow += 1
-        elif(base == len(window[chr(len(window)-1)])):
+        elif(base == len(window[str(len(window)-1)]) and recieved):
             global status
             status = cStates.FINAL_STATE
             return
@@ -95,6 +96,8 @@ def rdt_sent():
             
 
 def prepareWindow():
+    MSG = pickle.dumps("start")
+    sendDatagram(MSG, UDPSenderSocket, recieverAddressPort)
     global packets
     file = open(filename, "rb")
     seqN = 0 # Tamanho em 'packets'
@@ -108,8 +111,8 @@ def prepareWindow():
             i = windowSizeInBlocks
             break  # End of file
         if( i == windowSizeInBlocks):
-            index = len(window)+1
-            window[chr(index)] = packets
+            index = len(window)
+            window[str(index)] = packets
             packets = []
             i = 0
         else:
@@ -128,6 +131,8 @@ def main():
             case cStates.INITIAL_STATE:
                 base = 1
                 nextSeqNum = 1
+                state = cStates.STATE_1
+                rdt_sent()
                 break
             case cStates.STATE_1: # enviar packets
                 rdt_sent()

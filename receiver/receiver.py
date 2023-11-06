@@ -37,12 +37,18 @@ def sendDatagram(msg, sock, address):
 
 
 def main():
+#     MSG = ""
+#    while MSG != "start":
+#        datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
+#        MSG =pickle.loads(datagram)
+#    print(MSG)
     global expectedSeqNum
     file = open(fileNameInReceiver, "wb")  # Cria ficheiro novo
     while True:
         if waitForReply(
             UDPReceiverSocket, 1
         ):  # Espera um segundo pela informação a ser lida 'AJUSTAR'
+            print("here")
             datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
             message = pickle.loads(datagram)
             seqN = message[0]
