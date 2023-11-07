@@ -3,6 +3,7 @@ import socket
 import pickle
 import random
 import select
+import time
 
 
 # receiverIP = sys.argv[1]
@@ -79,6 +80,7 @@ def main():
             if (
                 len(data) < 1024
             ):  # Quando a len da data é menor que 1024 significa que já não tem mais nada para mandar
+                time.sleep(10)
                 break
     file.close()
     UDPReceiverSocket.close()

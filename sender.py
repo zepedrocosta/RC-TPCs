@@ -16,7 +16,7 @@ senderPort = 55555
 receiverIP = "127.0.0.1"
 receiverPort = 55555
 filename = "test.txt"
-windowSizeInBlocks = 2
+windowSizeInBlocks = 5
 
 base = 1
 nextSeqNum = 1
@@ -24,15 +24,12 @@ chunkSize = 1024
 packets = []
 window = {}
 currWindow = 0
-
+seqN = 0
 
 class cStates:
     INITIAL_STATE = "inicio"
     FINAL_STATE = "final"
     STATE_1 = "state_1"
-    STATE_2 = "state_2"
-    STATE_3 = "state_3"
-
 
 recieverAddressPort = (receiverIP, receiverPort)
 
@@ -56,7 +53,7 @@ def sendDatagram(msg, sock, address):
     # Generate random number in the range of 1 to 10
     rand = random.randint(1, 10)
     # If rand is less is than 3, do not respond (20% of loss probability)
-    if rand >= 5:
+    if rand >= 3:
         sock.sendto(msg, address)
 
 
@@ -79,49 +76,57 @@ def rdt_sent():
     global currWindow
     global nextSeqNum
     global base
-    if currWindow < len(window):
+    while currWindow < len(window):
         # print(str(currWindow))
         tmp = window[str(currWindow)]
         i = 0
-        while i < len(tmp): # len = 2
+        while i < len(tmp): # corrigir a len
             msgSendP = pickle.dumps(
                 (nextSeqNum, tmp[i])
             )  # manda um a um dentro da window
             print("Packet sent: ", nextSeqNum)
             i += 1
             sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
-            nextSeqNum += 1
             recieved = False
-            if waitForReply(UDPSenderSocket, 5):  # espera 5 segundos por info
+            nextSeqNum += 1
+            if waitForReply(UDPSenderSocket, 2):  # espera 5 segundos por info
                 datagram, address = UDPSenderSocket.recvfrom(chunkSize)
                 recieved = recv_ack(datagram)
             else:
                 print("Perdeu-se ACK: ", nextSeqNum - 1)
-            if recieved:
-                currWindow += 1
-            elif base == len(window[str(len(window) - 1)]) and recieved:
-                global status
-                status = cStates.FINAL_STATE
-                return
+                nextSeqNum-=i
+                break
+        if recieved: # se tudo correu bem
+            currWindow += 1
+        elif base == len(window[str(len(window) - 1)]) and recieved: #para parar
+            # sendDatagram("", UDPSenderSocket, recieverAddressPort)
+            global status
+            status = cStates.FINAL_STATE
+            return
+        # else: #testar
+        #     nextSeqNum = currWindow * chunkSize
         rdt_sent()
 
 
 def prepareWindow():
     global packets
+    global windowSizeInBlocks
+    global window
+    global chunkSize
+    global seqN
     file = open(filename, "rb")
-    seqN = 0  # Tamanho em 'packets'
-    i = 0
+    i = 1
     while True:
         data = file.read(chunkSize)
         packets.append(data)  # separar o ficheiro em packets
         seqN += 1
-        if not data:
+        if not data: # fim do ficheiro
             i = windowSizeInBlocks
         if i == windowSizeInBlocks:
             index = len(window)
             window[str(index)] = packets
             packets = []
-            i = 0
+            i = 1
             if len(data) < chunkSize:
                 break
         else:
@@ -141,7 +146,6 @@ def main():
                 base = 1
                 nextSeqNum = 1
                 state = cStates.STATE_1
-                # rdt_sent()
             case cStates.STATE_1:  # enviar packets
                 rdt_sent()
     UDPSenderSocket.close()
