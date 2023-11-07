@@ -5,14 +5,9 @@ import random
 import select
 import time
 
-
-# receiverIP = sys.argv[1]
-# receiverPort = int(sys.argv[2])
-# fileNameInReceiver = sys.argv[3]
-
-receiverIP = "127.0.0.1"
-receiverPort = 55555
-fileNameInReceiver = "testeeeee.txt"
+receiverIP = sys.argv[1]
+receiverPort = int(sys.argv[2])
+fileNameInReceiver = sys.argv[3]
 
 bufferSize = 1024
 socketBuffer = bufferSize + 1024

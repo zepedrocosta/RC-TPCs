@@ -4,19 +4,12 @@ import pickle
 import select
 import random
 
-# senderIP = sys.argv[1]
-# senderPort = int(sys.argv[2])
-# receiverIP = sys.argv[3]
-# receiverPort = int(sys.argv[4])
-# filename = sys.argv[5]
-# windowSizeInBlocks = int(sys.argv[6])
-
-senderIP = "127.0.0.1"
-senderPort = 55555
-receiverIP = "127.0.0.1"
-receiverPort = 55555
-filename = "test.txt"
-windowSizeInBlocks = 5
+senderIP = sys.argv[1]
+senderPort = int(sys.argv[2])
+receiverIP = sys.argv[3]
+receiverPort = int(sys.argv[4])
+filename = sys.argv[5]
+windowSizeInBlocks = int(sys.argv[6])
 
 base = 1
 nextSeqNum = 1
@@ -35,8 +28,8 @@ recieverAddressPort = (receiverIP, receiverPort)
 
 UDPSenderSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-# # Bind to address and ip
-# UDPSenderSocket.bind((receiverIP, receiverPort))
+# Bind to address and ip
+UDPSenderSocket.bind((senderIP, senderPort))
 
 
 def waitForReply(uSocket, timeOutInSeconds):
