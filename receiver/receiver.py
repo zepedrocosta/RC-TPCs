@@ -5,9 +5,14 @@ import random
 import select
 
 
-receiverIP = sys.argv[1]
-receiverPort = int(sys.argv[2])
-fileNameInReceiver = sys.argv[3]
+# receiverIP = sys.argv[1]
+# receiverPort = int(sys.argv[2])
+# fileNameInReceiver = sys.argv[3]
+
+receiverIP = "127.0.0.1"
+receiverPort = 55555
+fileNameInReceiver = "testeeeee.txt"
+
 bufferSize = 1024
 expectedSeqNum = 0
 
@@ -37,11 +42,11 @@ def sendDatagram(msg, sock, address):
 
 
 def main():
-#     MSG = ""
-#    while MSG != "start":
-#        datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
-#        MSG =pickle.loads(datagram)
-#    print(MSG)
+    #     MSG = ""
+    #    while MSG != "start":
+    #        datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
+    #        MSG =pickle.loads(datagram)
+    #    print(MSG)
     global expectedSeqNum
     file = open(fileNameInReceiver, "wb")  # Cria ficheiro novo
     while True:
