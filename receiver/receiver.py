@@ -14,7 +14,8 @@ receiverPort = 55555
 fileNameInReceiver = "testeeeee.txt"
 
 bufferSize = 1024
-expectedSeqNum = 0
+socketBuffer = bufferSize + 1024
+expectedSeqNum = 1
 
 # Create a datagram socket
 UDPReceiverSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -53,27 +54,28 @@ def main():
         if waitForReply(
             UDPReceiverSocket, 1
         ):  # Espera um segundo pela informação a ser lida 'AJUSTAR'
-            print("here")
-            datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
+            print("CHEGOU INFO!!")
+            datagram, address = UDPReceiverSocket.recvfrom(socketBuffer)
             message = pickle.loads(datagram)
             seqN = message[0]
             data = message[1]
             print("Received packet: ", seqN)
+            print("Expected packet: ", expectedSeqNum)
             if seqN == expectedSeqNum:
-                file.write(data)
                 reply = (expectedSeqNum, "ACK")
                 replyP = pickle.dumps(reply)
                 sendDatagram(replyP, UDPReceiverSocket, address)
-                print("Sending ACK: ", expectedSeqNum)
+                print("RIGHT PACKET | Sending ACK: ", expectedSeqNum)
                 expectedSeqNum += 1
+                file.write(data)
             else:
                 reply = (
                     expectedSeqNum - 1,
                     "ACK",
-                )  # Caso em que recebe um packet diferente daquele que está á espera
+                )  # Caso em que recebe um packet diferente daquele que está á espera. Manda o ack do ultimo que recebeu corretamente
                 replyP = pickle.dumps(reply)
                 sendDatagram(replyP, UDPReceiverSocket, address)
-                print("Sending ACK", expectedSeqNum - 1)
+                print("WRONG PACKET | Sending ACK: ", expectedSeqNum - 1)
             if (
                 len(data) < 1024
             ):  # Quando a len da data é menor que 1024 significa que já não tem mais nada para mandar
