@@ -39,17 +39,13 @@ def sendDatagram(msg, sock, address):
 
 
 def main():
-    #     MSG = ""
-    #    while MSG != "start":
-    #        datagram, address = UDPReceiverSocket.recvfrom(bufferSize)
-    #        MSG =pickle.loads(datagram)
-    #    print(MSG)
+    start = time.time()
     global expectedSeqNum
     file = open(fileNameInReceiver, "wb")  # Cria ficheiro novo
     while True:
         if waitForReply(
             UDPReceiverSocket, 1
-        ):  # Espera um segundo pela informação a ser lida 'AJUSTAR'
+        ):
             print("CHEGOU INFO!!")
             datagram, address = UDPReceiverSocket.recvfrom(socketBuffer)
             message = pickle.loads(datagram)
@@ -75,10 +71,14 @@ def main():
             if (
                 len(data) < 1024
             ):  # Quando a len da data é menor que 1024 significa que já não tem mais nada para mandar
-                time.sleep(10)
+                end = time.time()
+                time.sleep(5)
                 break
     file.close()
     UDPReceiverSocket.close()
+    elapsedTime = end - start
+    transferSpeed = ((bufferSize * expectedSeqNum) / elapsedTime) /1024
+    print(f"Transfer speed = {transferSpeed} Kb/s")
 
 
 main()

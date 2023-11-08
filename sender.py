@@ -24,12 +24,16 @@ class cStates:
     FINAL_STATE = "final"
     STATE_1 = "state_1"
 
+
+state = cStates.INITIAL_STATE
+
 recieverAddressPort = (receiverIP, receiverPort)
 
 UDPSenderSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 # Bind to address and ip
-UDPSenderSocket.bind((senderIP, senderPort))
+if(senderIP != receiverIP):
+    UDPSenderSocket.bind((senderIP, senderPort))
 
 
 def waitForReply(uSocket, timeOutInSeconds):
@@ -64,8 +68,6 @@ def recv_ack(data):
 
 
 def rdt_sent():
-    # enviar window nextSeqNum ate windowSizeInBlocks 1 a 1
-    # esperar timeout
     global currWindow
     global nextSeqNum
     global base
@@ -82,22 +84,19 @@ def rdt_sent():
             sendDatagram(msgSendP, UDPSenderSocket, recieverAddressPort)
             recieved = False
             nextSeqNum += 1
-            if waitForReply(UDPSenderSocket, 2):  # espera 5 segundos por info
+            if waitForReply(UDPSenderSocket, 1):
                 datagram, address = UDPSenderSocket.recvfrom(chunkSize)
                 recieved = recv_ack(datagram)
             else:
                 print("Perdeu-se ACK: ", nextSeqNum - 1)
                 nextSeqNum-=i
                 break
-        if recieved: # se tudo correu bem
+        if recieved: 
             currWindow += 1
-        elif base == len(window[str(len(window) - 1)]) and recieved: #para parar
-            # sendDatagram("", UDPSenderSocket, recieverAddressPort)
-            global status
-            status = cStates.FINAL_STATE
+        elif base == len(window[str(len(window) - 1)]) and recieved:
+            global state
+            state = cStates.FINAL_STATE
             return
-        # else: #testar
-        #     nextSeqNum = currWindow * chunkSize
         rdt_sent()
 
 
@@ -113,7 +112,7 @@ def prepareWindow():
         data = file.read(chunkSize)
         packets.append(data)  # separar o ficheiro em packets
         seqN += 1
-        if not data: # fim do ficheiro
+        if not data:
             i = windowSizeInBlocks
         if i == windowSizeInBlocks:
             index = len(window)
@@ -130,6 +129,7 @@ def prepareWindow():
 def main():
     global base
     global nextSeqNum
+    global state
     prepareWindow()
 
     state = cStates.INITIAL_STATE
@@ -139,7 +139,7 @@ def main():
                 base = 1
                 nextSeqNum = 1
                 state = cStates.STATE_1
-            case cStates.STATE_1:  # enviar packets
+            case cStates.STATE_1:
                 rdt_sent()
     UDPSenderSocket.close()
 
