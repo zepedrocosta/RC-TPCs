@@ -3,6 +3,7 @@ import socket
 from threading import Thread
 from queue import Queue
 import requests
+import linecache
 
 """
 @author: Catarina Gonçalves Costa | 62497
@@ -11,21 +12,34 @@ import requests
 
 baseURL = sys.argv[1]
 movieName = sys.argv[2]
-track = sys.argv[3]
+track = int(sys.argv[3])
 
 TCPPlayerSocket = socket.socket(
-    family=socket.AF_INET, type=socket.SOCK_STREAM
-)  # create TCP welcoming socket
-TCPServerSocket = socket.socket(
     family=socket.AF_INET, type=socket.SOCK_STREAM
 )  # create TCP welcoming socket
 
 
 def producerTask(queue):
-    path = baseURL + "/" + movieName
-    print(path)
-    # r = requests.get(path)
-
+    segmentNameLine = 2 + track + (54 * (track - 1))  # Line for the track name
+    segmentBegin = 2 + (5 * track) + (50 * (track - 1))  # 50
+    path = baseURL + movieName
+    r = requests.get(path + "/manifest.txt")
+    with open("manifest.txt", "wb") as f:
+        f.write(r.content)
+    segmentName = linecache.getline("manifest.txt", segmentNameLine).strip()
+    for i in range(1, 51):
+        numberOfSegments = linecache.getline(
+            "manifest.txt", segmentBegin + i
+        ).strip()
+        list = numberOfSegments.split()
+        beginAndEnd = [int(num) for num in list]
+        begin = beginAndEnd[0]
+        end = beginAndEnd[1]
+        headers = {"Range": "bytes={}-{}".format(begin, end)}
+        r = requests.get(path + "/" + segmentName, headers=headers)
+        queue.put(r.content)
+        print("Segmento {} enviado!".format(i))
+    queue.put(None) # Fim do segmento
 
 def consumerTask(queue):
     print("consumer")
