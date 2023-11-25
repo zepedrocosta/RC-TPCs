@@ -20,28 +20,31 @@ TCPServerSocket = socket.socket(
     family=socket.AF_INET, type=socket.SOCK_STREAM
 )  # create TCP welcoming socket
 
-def producer(queue):
-    path = baseURL + '/' + movieName
+
+def producerTask(queue):
+    path = baseURL + "/" + movieName
     print(path)
     # r = requests.get(path)
 
-def consumer(queue):
-    print('consumer')
+
+def consumerTask(queue):
+    print("consumer")
+
 
 def main():
     queue = Queue()
-    
+
     # Consumer
-    consumerThread = Thread(target=consumer, args=(queue))
-    consumerThread.start()
+    consumer = Thread(target=consumerTask, args=(queue,))
+    consumer.start()
 
     # Producer
-    producerThread = Thread(target=producer, args=(queue))
-    producerThread.start()
+    producer = Thread(target=producerTask, args=(queue,))
+    producer.start()
 
     # Finish
-    producerThread.join()
-    consumerThread.join()
+    producer.join()
+    consumer.join()
 
 
 main()
