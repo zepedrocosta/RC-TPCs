@@ -14,7 +14,7 @@ baseURL = sys.argv[1]
 movieName = sys.argv[2]
 track = int(sys.argv[3])
 
-playerAddressPort = ("0.0.0.0", 8000)
+playerAddressPort = ("localhost", 8000)
 
 TCPPlayerSocket = socket.socket(
     family=socket.AF_INET, type=socket.SOCK_STREAM
@@ -22,18 +22,23 @@ TCPPlayerSocket = socket.socket(
 
 
 def producerTask(queue):
-    segmentNameLine = 2 + track + (54 * (track - 1))  # Line for the track name
-    segmentBegin = 2 + (5 * track) + (50 * (track - 1))  # 50
+    numberOfSegments = linecache.getline(
+        "manifest.txt", 7
+    ).strip()  # Numero de segmentos
+    segmentNameLine = (
+        2 + track + ((int(numberOfSegments) + 4) * (track - 1))
+    )  # Line for the track name
+    segmentLinesBegin = 2 + (5 * track) + (int(numberOfSegments) * (track - 1))
     path = baseURL + movieName
     r = requests.get(path + "/manifest.txt")
     with open("manifest.txt", "wb") as f:
         f.write(r.content)
     segmentName = linecache.getline("manifest.txt", segmentNameLine).strip()
-    for i in range(1, 51):
-        numberOfSegments = linecache.getline(
-            "manifest.txt", segmentBegin + i
+    for i in range(1, int(numberOfSegments) + 1):
+        segment = linecache.getline(
+            "manifest.txt", int(segmentLinesBegin) + i
         ).strip()
-        list = numberOfSegments.split()
+        list = segment.split()
         beginAndEnd = [int(num) for num in list]
         begin = beginAndEnd[0]
         end = beginAndEnd[1]
@@ -41,18 +46,22 @@ def producerTask(queue):
         r = requests.get(path + "/" + segmentName, headers=headers)
         queue.put(r.content)
         print("Segmento {} enviado!".format(i))
-    queue.put(None) # Fim do segmento
+    queue.put(None)  # Fim do segmento
+    print("Producer done!!")
 
 def consumerTask(queue):
-    print("consumer")
+    TCPPlayerSocket.connect(playerAddressPort)
+    count = 1
     while True:
         item = queue.get()
         if item is None:
             break
-        TCPPlayerSocket.sendto(item,playerAddressPort)
-
-    print("consumer done")
+        TCPPlayerSocket.send(item)
+        print("Segmento {} recebido!".format(count))
+        count += 1
+    print("Consumer done!!")
     TCPPlayerSocket.close()
+
 
 def main():
     queue = Queue()
