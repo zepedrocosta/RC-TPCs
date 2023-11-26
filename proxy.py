@@ -14,6 +14,8 @@ baseURL = sys.argv[1]
 movieName = sys.argv[2]
 track = int(sys.argv[3])
 
+playerAddressPort = ("0.0.0.0", 8000)
+
 TCPPlayerSocket = socket.socket(
     family=socket.AF_INET, type=socket.SOCK_STREAM
 )  # create TCP welcoming socket
@@ -43,7 +45,14 @@ def producerTask(queue):
 
 def consumerTask(queue):
     print("consumer")
+    while True:
+        item = queue.get()
+        if item is None:
+            break
+        TCPPlayerSocket.sendto(item,playerAddressPort)
 
+    print("consumer done")
+    TCPPlayerSocket.close()
 
 def main():
     queue = Queue()
