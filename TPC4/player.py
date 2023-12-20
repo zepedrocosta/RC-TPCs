@@ -15,8 +15,9 @@ server_socket.listen(0)
 # Accept a single connection and make a file-like object out of it
 connection = server_socket.accept()[0].makefile("rb")
 
+# Player used
 try:
-    cmdline = "MPlayer-generic-r38407+g10a56363a7/mplayer.exe -ni -"  # Pasta na directoria de trabalho
+    cmdline = "MPlayer-generic-r38407+g10a56363a7/mplayer.exe -ni -"  
     player = subprocess.Popen(cmdline.split(), stdin=subprocess.PIPE)
     while True:
         # Repeatedly read 1k of data from the connection and write it to
